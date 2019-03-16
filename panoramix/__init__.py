@@ -6,7 +6,7 @@ import click
 @click.group()
 def panoramix():
     """Programme Panoramix. Il sait faire plein de choses, surtout des potions."""
-    pass
+    click.echo("\nPANORAMIX\n=========\n")
 
 from .makedocs import makedocs
 
