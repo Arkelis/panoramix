@@ -2,15 +2,17 @@ import glob
 import click
 import re
 import os
-import sh
+import subprocess
 
 from . import panoramix
 
 @panoramix.command()
-def makedocs():
+@click.argument("folder")
+def makedocs(folder):
     """Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST pour Sphinx."""
     click.echo("Je sors ma potion pour fabriquer la doc !\n")
-    for path in glob.iglob("**/*.tex", recursive=True):
+    for path in glob.iglob(folder + "/**/*.tex", recursive=True):
+        print(path)
         with open(path, "r") as f:
             tex = f.read()
             print("Recherche des \\paragraph{}...")
