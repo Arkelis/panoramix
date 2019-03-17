@@ -2,12 +2,51 @@
 
 Il a plein de potions dans son sac.
 
-## Commandes
-
-* `makedocs` : outil pour convertir le [mémo Python en TeX](https://github.com/arkelis/memo-python) vers le format RST.
-
 ## Dépendances
 
 * [`click`](https://github.com/pallets/click) : outil pour écrire des programmes en ligne de commande.
-* Pour la commande `makedocs` : [`sh`](https://github.com/amoffat/sh) pour utiliser les commandes externes
-comme des fonctions.
+* [`sh`](https://github.com/amoffat/sh) : pour utiliser les commandes externes comme des fonctions.
+
+## Utilisation
+
+Soit comme un module, dans le dossier contenant Panoramix
+
+`$ python -m panoramix <args>`
+
+Soit en créant un petit script Python faisant office d'exécutable dans votre dossier `~/.local/bin`.
+Ce fichier nommé par exemple `panoramix` devrait contenir par exemple :
+
+```python
+#! <chemin vers python3 (cet environnement de Python doit contenir les dépendances indiquées)>
+
+import re
+import sys
+
+sys.path.append(<chemin vers le dossier panoramix>) # nécessaire car on ne place pas panoramix dans site-packages
+
+from panoramix import panoramix
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(panoramix())
+```
+
+Il faut rendre ce fichier exécutable avec un `chmod +x panoramix`. On peut maintenant faire depuis n'importe où :
+
+```bash
+$ panoramix
+Usage: panoramix [OPTIONS] COMMAND [ARGS]...
+
+  Programme Panoramix. Il sait faire plein de choses, surtout des potions.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  makedocs  Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST...
+```
+
+## Commandes
+
+* `makedocs` : outil pour convertir le [mémo Python en TeX](https://github.com/arkelis/memo-python) vers le format RST
+  pour générer [la version Web](https://www.pycolore.fr/python/).
