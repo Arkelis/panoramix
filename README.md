@@ -5,7 +5,6 @@ Il a plein de potions dans son sac.
 ## Dépendances
 
 * [`click`](https://github.com/pallets/click) : outil pour écrire des programmes en ligne de commande.
-* [`sh`](https://github.com/amoffat/sh) : pour utiliser les commandes externes comme des fonctions.
 
 ## Utilisation
 
@@ -16,8 +15,8 @@ Soit comme un module, dans le dossier contenant Panoramix
 Soit en créant un petit script Python faisant office d'exécutable dans votre dossier `~/.local/bin`.
 Ce fichier nommé par exemple `panoramix` devrait contenir par exemple :
 
-```python
-#! <chemin vers python3 (cet environnement de Python doit contenir les dépendances indiquées)>
+```python3
+#!/usr/bin/env python3
 
 import re
 import sys
