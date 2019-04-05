@@ -4,32 +4,55 @@ import re
 import os
 import subprocess
 
-from . import panoramix
+from click.exceptions import Exit
 
+from . import panoramix, abort, success
+from .settings import makedocs_settings
+
+    
 
 @panoramix.command()
-@click.argument("folder")
-def makedocs(folder):
-    """Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST pour Sphinx."""
+@click.option("-v", "--verbose", "verbose")
+def makedocs(verbose):
+    """Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST pour Sphinx.
+    
+    Cherche un fichier .tex dans le répertoire courant. S'il y en a un, effectue une
+    recherche récursive te fichiers .tex et les convertit tous en fichiers .rst et les 
+    place dans le dossier ../rst/.
+    """
     click.secho("Je sors ma potion pour fabriquer la doc !\n", bold=True)
-    for path in glob.iglob(folder + "/**/*.tex", recursive=True):
+    click.secho("Conversion des fichers .tex en .rst...\n", bold=True, fg="cyan")
+    try:
+        import conf
+    except (NameError, ModuleNotFoundError):
+        click.secho("Fichier de configuration non trouvé. Paramètres par défaut.", fg="yellow")
+        # return abort()
+    if not glob.glob("*.tex"):
+        click.secho("Pas de fichier tex dans le dossier courant.", fg="red", bold=True)
+        return abort()
+    for path in glob.iglob("**/*.tex", recursive=True):
         click.secho(f"Fichier trouvé : {path}", bold=True)
         with open(path, "r") as f:
             tex = f.read()
-            click.secho("Recherche des \\paragraph{}...", fg="cyan")
-            new_tex = re.sub(
-                r"\\paragraph\*?\{(?P<titre>.*?)\}", r"\\textbf{\g<titre>~:}", tex
-            )
+            if verbose:
+                click.secho("Application des modifications nécessaires...", fg="cyan")
+            for t in makedocs_settings["subs"]:
+                new_tex = re.sub(*t, tex)
         if tex != new_tex:
             with open("temp.tex", "w") as f:
-                click.secho("Création d'un fichier TeX temporaire...", fg="cyan")
+                if verbose:
+                    click.secho("Création d'un fichier TeX temporaire...", fg="cyan")
                 f.write(new_tex)
             to_convert = "temp.tex"
         else:
-            click.secho("Rien à faire !", fg="cyan")
+            if verbose:
+                click.secho("Rien à faire !", fg="cyan")
             to_convert = path
-        click.secho("Conversion en RST...", fg="yellow")
-        subprocess.run(["pandoc", to_convert, "-o", f"{path[:-4]}.rst"])
+        if verbose:
+            click.secho("Conversion en RST...", fg="yellow")
+        subprocess.run(["pandoc", to_convert, "-o", f"../rst/{path[:-4]}.rst"])
+    click.secho("\nConversion terminée ! Compilation avec sphinx...\n", bold=True, fg='cyan')
+    subprocess.run(["make", "html"], cwd="../rst")
     click.echo("\nNettoyage du fichier temporaire...")
     subprocess.run(["rm", "temp.tex"])
-    click.secho("\nTerminé.\n", bold=True, fg="green")
+    return success()
