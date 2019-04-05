@@ -12,7 +12,7 @@ from .settings import makedocs_settings
     
 
 @panoramix.command()
-@click.option("-v", "--verbose", "verbose")
+@click.option("-v", "--verbose", "verbose", help="Mode verbeux.", is_flag=True)
 def makedocs(verbose):
     """Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST pour Sphinx.
     
