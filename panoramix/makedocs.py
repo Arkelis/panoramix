@@ -7,8 +7,6 @@ import subprocess
 from click.exceptions import Exit
 
 from . import panoramix, abort, success
-from .settings import makedocs_settings
-
     
 
 @panoramix.command()
@@ -23,10 +21,10 @@ def makedocs(verbose):
     click.secho("Je sors ma potion pour fabriquer la doc !\n", bold=True)
     click.secho("Conversion des fichers .tex en .rst...\n", bold=True, fg="cyan")
     try:
-        import conf
+        from settings import makedocs_settings 
     except (NameError, ModuleNotFoundError):
         click.secho("Fichier de configuration non trouvé. Paramètres par défaut.", fg="yellow")
-        # return abort()
+        from .settings import makedocs_settings
     if not glob.glob("*.tex"):
         click.secho("Pas de fichier tex dans le dossier courant.", fg="red", bold=True)
         return abort()
