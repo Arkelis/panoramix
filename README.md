@@ -1,4 +1,4 @@
-# Panoramix
+# Panoramix (outil perso)
 
 Il a plein de potions dans son sac.
 
