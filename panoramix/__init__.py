@@ -18,6 +18,7 @@ def success():
 
 from .makedocs import makedocs
 from .themes import themes
+from .composer import composer
 
 if __name__ == '__main__':
     panoramix()
