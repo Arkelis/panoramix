@@ -49,3 +49,4 @@ Commands:
 
 * `makedocs` : outil pour convertir le [mémo Python en TeX](https://github.com/arkelis/memo-python) vers le format RST
   pour générer [la version Web](https://www.pycolore.fr/python/).
+* `composer` : outil pour installer / supprimer [Composer](https://getcomposer.org).
