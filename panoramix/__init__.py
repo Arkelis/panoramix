@@ -17,11 +17,13 @@ def abort(msg="Fin du programme."):
 def success():
     click.secho("\nTerminé.", fg="green", bold=True)
 
-def run_process(list, msg="Une erreur est survenue."):
+def run_process(list, msg="Une erreur est survenue ou le programme a été interrompu par l'utilisateur."):
     try:
         code = subprocess.run(list).returncode
         if code:
             abort(msg)
+    except Exit:
+        raise Exit()
     except Exception as err:
         abort("Erreur : " + str(err))
 
