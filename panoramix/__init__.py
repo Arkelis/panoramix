@@ -1,6 +1,3 @@
-# This is Panoramix, PostTexRST to FinalRST converter for PyColore. This simply
-# does some processing after pandoc converts Tex files to RST.
-
 import click
 import subprocess
 from click.exceptions import Exit
