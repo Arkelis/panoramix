@@ -30,6 +30,7 @@ def run_process(list, msg="Une erreur est survenue ou le programme a été inter
 from .makedocs import makedocs
 from .themes import themes
 from .composer import composer
+from .homeconf import homeconf
 
 if __name__ == '__main__':
     panoramix()
