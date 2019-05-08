@@ -82,7 +82,7 @@ def pull():
     par des liens symbolique. Une copie de sauvegarde est gardée sous la forme
     fichier.bak.
     """
-    
+
     click.secho("Sauvegarde de la configuration distante sur la machine locale...", bold=True, fg="cyan")
 
     # Création du dossier si nécessaire
@@ -108,6 +108,13 @@ def pull():
                 click.secho(f"Lien symbolique trouvé pour {file}. Vérifier qu'il point bien vers le fichier voulu.", fg="cyan")
 
     success()
+
+@homeconf.command()
+@click.pass_context
+def sync(ctx):
+    """Effectue un pull puis un push."""
+    ctx.invoke(pull)
+    ctx.invoke(push)
 
 def create_directory_or_pass():
     """Crée un dépôt git local contenant les fichiers de config si nécessaire.
