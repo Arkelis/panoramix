@@ -64,11 +64,14 @@ def push():
     # Push
     git_push = subprocess.Popen(["git", "push"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     std_out, std_err = git_push.communicate()
+    print((std_out or std_err).decode())
     if git_push.returncode:
         if "git remote add" in std_err.decode():
             remote_url = input("Entrer l'URL du dépôt git où vous souhaitez stocker vos fichiers de conf : ")
             subprocess.run(["git", "remote", "add", "origin", remote_url])
             subprocess.run(["git", "push", "-u", "origin", "master"])
+        elif "Could not resolve hostname github.com" in std_err.decode():
+            abort("Vérifier la connexion internet.")
         else:
             abort("Erreur git non prise en charge.")
     success()
