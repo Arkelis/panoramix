@@ -54,4 +54,10 @@ Commands:
   pour générer [la version Web](https://www.pycolore.fr/python/).
 * `composer` : outil pour installer / supprimer [Composer](https://getcomposer.org).
 * `homeconf` : outil pour synchroniser les dotfiles type `.vimrc`, `.zshrc`, etc.
-* `themes` : outil pour gérer les thèmes GNOME.
+* `themes` : outil pour gérer les thèmes GNOM
+
+## Roadmap
+
+- [ ] Compatibilité Windows (Msys2)
+- [ ] Kickstart script
+
