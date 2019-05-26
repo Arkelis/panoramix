@@ -8,12 +8,20 @@ from datetime import date
 from . import panoramix, success, abort
 from .settings import homeconf_settings as settings
 
+if os.name != "posix":
+    import shutil
+
+try:
+    DIRECTORY_SEPARATOR = {
+        "posix": "/",
+        "nt": "\\"
+    }[os.name]
+except KeyError:
+    raise RuntimeError("OS not supported")
+
 DEVNULL = open(os.devnull, 'w')
-
 HOME = os.path.expanduser("~")
-
-GIT_PATH = os.path.join(HOME, "Documents/homeconf-git")
-
+GIT_PATH = os.path.join(HOME, "Documents" + DIRECTORY_SEPARATOR + "homeconf-git")
 
 @panoramix.group()
 def homeconf():
@@ -54,8 +62,8 @@ def push():
     for file in settings["files"]:
         if not glob.glob(file):
             click.secho(f"Copie du fichier {file}", fg="cyan")
-            os.rename(str(HOME) + "/" + file, file)
-            os.symlink(str(GIT_PATH) + "/" + file, str(HOME) + "/" + file)
+            os.rename(str(HOME) + DIRECTORY_SEPARATOR + file, file)
+            os.symlink(str(GIT_PATH) + DIRECTORY_SEPARATOR + file, str(HOME) + DIRECTORY_SEPARATOR + file)
 
     # Commit
     subprocess.run(["git", "add", "."])
@@ -101,12 +109,11 @@ def pull():
     files_in_repo = itertools.chain(glob.iglob(".*"), glob.iglob("*")) # recherche tous les fichiers sauf ".git".
     for file in files_in_repo:
         if file in settings["files"]:
-            if not os.path.islink(str(HOME) + "/" + file):
-                if os.path.isfile(str(HOME) + "/" + file):
+            if not os.path.islink(str(HOME) + DIRECTORY_SEPARATOR + file):
+                if os.path.isfile(str(HOME) + DIRECTORY_SEPARATOR + file):
                     click.secho(f"Sauvegarde de {file} dans {file}.bak...", fg="cyan")
                     os.rename(f"{HOME}/{file}", f"{HOME}/{file}.bak")
                 click.secho(f"Création du lien symbolique pour {file}...", fg="cyan")
-                os.symlink(str(GIT_PATH) + "/" + file, str(HOME) + "/" + file)
             else:
                 click.secho(f"Lien symbolique trouvé pour {file}. Vérifier qu'il point bien vers le fichier voulu.", fg="cyan")
 
@@ -131,8 +138,12 @@ def create_directory_or_pass():
     created = False
     if not os.path.isdir(GIT_PATH):
         click.secho("Création du dossier qui contiendra les fichiers de config...", bold=True, fg="cyan")
-        os.mkdir(GIT_PATH)
+        os.makedirs(GIT_PATH)
         created = True
     os.chdir(GIT_PATH)
+    try:
+        test = subprocess.check_output(["git", "status"])
+    except subprocess.CalledProcessError:
+        created = True
     return created
 
