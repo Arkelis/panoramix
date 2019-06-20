@@ -58,6 +58,6 @@ Commands:
 
 ## Roadmap
 
-- [ ] Compatibilité Windows (Msys2)
+- [ ] ~~Compatibilité Windows (Msys2)~~ abandonné
 - [ ] Kickstart script
 
