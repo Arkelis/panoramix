@@ -24,6 +24,20 @@ def run_process(list, msg="Une erreur est survenue ou le programme a été inter
     except Exception as err:
         abort("Erreur : " + str(err))
 
+@panoramix.command()
+def update():
+    """Met à jour avec DNF, met à jour pyenv, poetry."""
+
+    click.secho("Je sors ma potion pour mettre à jour le système !\n", bold=True)
+    click.secho("-> Mise à jour du système avec DNF...", fg="cyan", bold=True)
+    subprocess.run(["sudo", "dnf", "upgrade"])
+    click.secho("-> Mise à jour de poetry...", fg="cyan", bold=True)
+    subprocess.run(["poetry", "self:update"])
+    click.secho("-> Mise à jour de pyenv...", fg="cyan", bold=True)
+    subprocess.run(["pyenv", "update"])
+
+    return success()
+
 from .makedocs import makedocs
 from .themes import themes
 from .composer import composer
