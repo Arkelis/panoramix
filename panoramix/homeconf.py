@@ -60,10 +60,13 @@ def push():
 
     # Copie des fichiers
     for file in settings["files"]:
+        click.secho(f"Vérification de {file}...", fg="cyan")
         if not glob.glob(file):
             click.secho(f"Copie du fichier {file}", fg="cyan")
-            os.rename(str(HOME) + DIRECTORY_SEPARATOR + file, file)
-            os.symlink(str(GIT_PATH) + DIRECTORY_SEPARATOR + file, str(HOME) + DIRECTORY_SEPARATOR + file)
+            if "/" in file:
+                os.makedirs("/".join(file.split("/")[:-1]))
+            os.rename(str(HOME) + "/" + file, file)
+            os.symlink(str(GIT_PATH) + "/" + file, str(HOME) + "/" + file)
 
     # Commit
     subprocess.run(["git", "add", "."])

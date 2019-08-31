@@ -5,6 +5,7 @@ makedocs_settings = {
 homeconf_settings = {
     "files": [
         ".zshrc",
-        ".vimrc"
+        ".vimrc",
+        ".config/argos/cpu.py"
     ]
 }
