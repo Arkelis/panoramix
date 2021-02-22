@@ -6,6 +6,7 @@ homeconf_settings = {
     "files": [
         ".zshrc",
         ".vimrc",
-        ".config/argos/cpu.py"
+        ".config/argos/cpu.py",
+        ".zshenv",
     ]
 }

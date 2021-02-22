@@ -6,10 +6,10 @@ import subprocess
 
 from click.exceptions import Exit
 
-from . import panoramix, abort, success
+from .utils import abort, success, echo_intro
     
 
-@panoramix.command()
+@click.command()
 @click.option("-v", "--verbose", "verbose", help="Mode verbeux.", is_flag=True)
 def makedocs(verbose):
     """Utilitaire pour convertir le Mémo Python LaTeX en fichiers RST pour Sphinx.
@@ -18,17 +18,17 @@ def makedocs(verbose):
     recherche récursive te fichiers .tex et les convertit tous en fichiers .rst et les 
     place dans le dossier ../rst/.
     """
-    click.secho("Je sors ma potion pour fabriquer la doc !\n", bold=True)
+    echo_intro("Je sors ma potion pour fabriquer la doc !")
     click.secho("Conversion des fichers .tex en .rst...\n", bold=True, fg="cyan")
     try:
-        from settings import makedocs_settings 
+        from .settings import makedocs_settings 
     except (NameError, ModuleNotFoundError):
         click.secho("Fichier de configuration non trouvé. Paramètres par défaut.", fg="yellow")
         from .settings import makedocs_settings
     if not glob.glob("*.tex"):
         click.secho("Pas de fichier tex dans le dossier courant.", fg="red", bold=True)
         return abort()
-    for path in glob.iglob("**/*.tex", recursive=True):
+    for path in glob.iglob("*/*.tex", recursive=True):
         click.secho(f"Fichier trouvé : {path}", bold=True)
         with open(path, "r") as f:
             tex = f.read()
@@ -39,7 +39,7 @@ def makedocs(verbose):
         if tex != new_tex:
             with open("temp.tex", "w") as f:
                 if verbose:
-                    click.secho("Création d'un fichier TeX temporaire...", fg="cyan")
+                    click.secho("Création d'un fichier TeX temporaire avec les modifications...", fg="cyan")
                 f.write(new_tex)
             to_convert = "temp.tex"
         else:

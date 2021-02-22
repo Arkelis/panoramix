@@ -1,4 +1,6 @@
 import glob
+import pathlib
+
 import click
 import re
 import os
@@ -6,16 +8,16 @@ import subprocess
 
 from click.exceptions import Exit
 
-from . import panoramix, abort, success, run_process
+from .utils import abort, success, run_process, echo_intro
 
-NAMES = {
-    "yaru": "yaru-git"
-}
 
-@panoramix.group()
+NAMES = {}
+
+
+@click.group()
 def themes():
     """Utilitaire de gestion de thèmes."""
-    click.secho("Je sors ma potion pour gérer les thèmes !\n", bold=True)
+    echo_intro("Je sors ma potion pour gérer les thèmes !")
     pass
 
 @themes.command()
@@ -33,9 +35,12 @@ def install(upgrade: str, name: str):
     if name.lower() in NAMES:
         name = NAMES[name.lower()]
         if upgrade:
-            click.secho(f"Mise à jour du paquet {name} avec DNF...", bold=True, fg="cyan")
-            run_process(["sudo", "dnf", "upgrade", name])
+            click.secho(f"Mise à jour du paquet {name} avec eopkg...", bold=True, fg="cyan")
+            run_process(["sudo", "eopkg", "upgrade", name])
         else:
-            click.secho(f"Installation du paquet {name} avec DNF...", bold=True, fg="cyan")
-            run_process(["sudo", "dnf", "install", name])
+            click.secho(f"Installation du paquet {name} avec eopkg...", bold=True, fg="cyan")
+            run_process(["sudo", "eopkg", "install", name])
+    elif name == "qogir":
+        click.secho("Installation / Mise à jour du thème Qogir")
+        themes_dir = pathlib.Path("")
     success()

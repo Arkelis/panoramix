@@ -5,7 +5,7 @@ import glob
 import itertools
 from datetime import date
 
-from . import panoramix, success, abort
+from .utils import success, abort, echo_intro
 from .settings import homeconf_settings as settings
 
 if os.name != "posix":
@@ -23,7 +23,7 @@ DEVNULL = open(os.devnull, 'w')
 HOME = os.path.expanduser("~")
 GIT_PATH = os.path.join(HOME, "Documents" + DIRECTORY_SEPARATOR + "homeconf-git")
 
-@panoramix.group()
+@click.group()
 def homeconf():
     """Utilitaire pour synchroniser les fichiers de configuration utilisateur.
     
@@ -32,7 +32,7 @@ def homeconf():
     push).
     """
     
-    click.secho("Je sors ma potion pour gérer la config home !\n", bold=True)
+    echo_intro("Je sors ma potion pour gérer la config home !")
 
 @homeconf.command()
 def push():
