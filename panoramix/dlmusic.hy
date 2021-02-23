@@ -1,12 +1,12 @@
 #! /usr/bin/env hy
 
-(import argparse
-        subprocess
+(import subprocess
         os
         click
-        deemix.app.cli)
+        deemix.app.cli
+        youtube-dl)
 
-(require [hy.contrib.walk [let]])
+(import [panoramix [utils]])
 
 ;; entry point command
 
@@ -21,21 +21,60 @@
     Deezer (téléchargée par deemix). Le fichier est ensuite converti au format
     opus avec ffmpeg.
     "
-    (if (and (in "deezer.com" url) (in "/track/" url))
-      (let [[file-location filename] (fetch-with-deemix url)]
-           (convert-to-opus file-location filename url)
-           (clean-deezer-file file-location)))))
+    (utils.echo-intro "Je sors ma potion télécharger de la musique !")
+    (if 
+      (and (in "deezer.com" url) (in "/track/" url))
+        (-> (unpack-iterable (fetch-with-deemix url))
+            (convert-deezer-to-opus)
+            (clean-file))
+      (in "youtu" url)
+        (fetch-with-youtube-dl url))))
 
 
 ;; YOUTUBE HANDLER
 
-;; (defn fetch-with-youtube-dl [url])
+(defn fetch-with-youtube-dl [url]
+  (print f"Téléchargement depuis Youtube...")
+  (doto (youtube-dl.YoutubeDL {"format" "251"
+                               "progress_hooks" [convert-yt-to-opus]})
+        (.download [url])))
+
+(defn convert-yt-to-opus [data]
+  (if (= (get data "status") "finished")
+    (do
+      (setv yt-location (get data "filename")
+            artist (input "Artiste : ")
+            title (input "Titre : ")
+            album (input "Album : ")
+            filename (.format "{}-{}" 
+                        (format-metadata artist)
+                        (format-metadata title))
+            home-dir (.getenv os "HOME")
+            opus-location f"{home-dir}/backup-songs/{filename}.opus")
+      (print "Ajout des métadonnées et copie dans backup-songs...")
+      (subprocess.run ["ffmpeg"
+                       "-y" 
+                       "-i"
+                       yt-location
+                       "-metadata"
+                       f"artist={artist}"
+                       "-metadata"
+                       f"title={title}"
+                       "-metadata"
+                       f"album={album}"
+                       "-c:a" 
+                       "copy" 
+                       opus-location])
+      (print f"Fichier converti et copié à {opus-location}."
+             "Suppression du fichier précédemment téléchargé..."
+             :sep "\n")
+      (clean-file yt-location))))
 
 
 ;; DEEZER HANDLER
 
 (defn fetch-with-deemix [url]
-  (print f"Downloading from Deezer...")
+  (print "Téléchargement depuis Deezer...")
   (setv worker (doto (deemix.app.cli.cli None None)
                      (.login)
                      (.downloadLink [url])))
@@ -44,35 +83,29 @@
         [(first (. it files))
          (.format "{}-{}" 
            (format-metadata (. it artist))
-           (format-metadata (. it title)))])
+           (format-metadata (. it title)))
+         url])
 
-(defn convert-to-opus [file-location filename url]
-  (print "Converting and copying in backup songs...")
+(defn convert-deezer-to-opus [file-location filename url]
+  (print "Conversion et copie dans backup-songs...")
   (setv track-number (last (.split url "track/"))
         home-dir (.getenv os "HOME")
         opus-location f"{home-dir}/backup-songs/{filename}.opus"
-        ffmpeg-result (.run subprocess
-                            ["ffmpeg"
-                              "-y" 
-                              "-i"
-                              file-location
-                              "-metadata"
-                              f"deezertrack={track-number}"
-                              "-c:a" 
-                              "libopus" 
-                              "-b:a"
-                              "152k"
-                              opus-location]
-                            :capture_output True))
-  (print f"File converted and copied at {opus-location}."
-         "Removing previously downloaded file..."
-         :sep "\n"))
-
-(defn clean-deezer-file [file-location]
-  (.system os f"rm \"{file-location}\"")
-  (print "File removed."
-         "Done!"
-         :sep "\n"))
+        ffmpeg-result (subprocess.run ["ffmpeg"
+                                       "-y" 
+                                       "-i"
+                                       file-location
+                                       "-metadata"
+                                       f"deezertrack={track-number}"
+                                       "-c:a" 
+                                       "libopus" 
+                                       "-b:a"
+                                       "152k"
+                                       opus-location]))
+  (print f"Fichier converti et copié à {opus-location}."
+         "Suppression du fichier précédemment téléchargé..."
+         :sep "\n")
+  file-location)
 
 
 ;; COMMON
@@ -84,3 +117,9 @@
       (.replace ")" "")
       (.replace "[" "")
       (.replace "]" "")))
+
+(defn clean-file [file-location]
+  (.system os f"rm \"{file-location}\"")
+  (print "Fichier supprimé."
+         "Terminé !"
+         :sep "\n"))

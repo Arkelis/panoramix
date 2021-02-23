@@ -8,8 +8,6 @@ from datetime import date
 from .utils import success, abort, echo_intro
 from .settings import homeconf_settings as settings
 
-if os.name != "posix":
-    import shutil
 
 try:
     DIRECTORY_SEPARATOR = {
@@ -23,6 +21,7 @@ DEVNULL = open(os.devnull, 'w')
 HOME = os.path.expanduser("~")
 GIT_PATH = os.path.join(HOME, "Documents" + DIRECTORY_SEPARATOR + "homeconf-git")
 
+
 @click.group()
 def homeconf():
     """Utilitaire pour synchroniser les fichiers de configuration utilisateur.
@@ -33,6 +32,7 @@ def homeconf():
     """
     
     echo_intro("Je sors ma potion pour gérer la config home !")
+
 
 @homeconf.command()
 def push():
@@ -56,7 +56,6 @@ def push():
     if created:
         click.secho("Initialisation du dépôt Git...", bold=True, fg="cyan")
         subprocess.run(["git", "init"])
-    
 
     # Copie des fichiers
     for file in settings["files"]:
@@ -86,6 +85,7 @@ def push():
         else:
             abort("Erreur git non prise en charge.")
     success()
+
 
 @homeconf.command()
 def pull():
@@ -128,6 +128,7 @@ def sync(ctx):
     """Effectue un pull puis un push."""
     ctx.invoke(pull)
     ctx.invoke(push)
+
 
 def create_directory_or_pass():
     """Crée un dépôt git local contenant les fichiers de config si nécessaire.
