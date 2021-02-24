@@ -5,8 +5,7 @@
   [.makedocs [makedocs]]
   [.themes [themes]]
   [.composer [composer]]
-  [.homeconf [homeconf]]
-  [.report [report]])
+  [.homeconf [homeconf]])
 
 (with-decorator
   (click.group)
