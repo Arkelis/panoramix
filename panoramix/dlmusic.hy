@@ -91,16 +91,11 @@
   (setv track-number (last (.split url "track/"))
         home-dir (.getenv os "HOME")
         opus-location f"{home-dir}/backup-songs/{filename}.opus"
-        ffmpeg-result (subprocess.run ["ffmpeg"
-                                       "-y" 
-                                       "-i"
-                                       file-location
-                                       "-metadata"
-                                       f"deezertrack={track-number}"
-                                       "-c:a" 
-                                       "libopus" 
-                                       "-b:a"
-                                       "152k"
+        ffmpeg-result (subprocess.run ["ffmpeg" "-y"  "-i" file-location
+                                       "-metadata" f"deezertrack={track-number}"
+                                       "-c:a" "libopus" 
+                                       "-b:a" "152k"
+                                       "-af" "silenceremove=stop_periods=-1:stop_duration=1:stop_threshold=-50dB"
                                        opus-location]))
   (print f"Fichier converti et copié à {opus-location}."
          "Suppression du fichier précédemment téléchargé..."
