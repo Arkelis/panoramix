@@ -2,10 +2,7 @@
   click
   [.dlmusic [dlmusic]]
   [.update [update]]
-  [.makedocs [makedocs]]
-  [.themes [themes]]
-  [.composer [composer]]
-  [.homeconf [homeconf]])
+  [.makedocs [makedocs]])
 
 (with-decorator
   (click.group)
@@ -15,8 +12,5 @@
 (doto panoramix
   (.add-command update)
   (.add-command makedocs)
-  (.add-command themes)
-  (.add-command composer)
-  (.add-command update)
   (.add-command dlmusic))
   
