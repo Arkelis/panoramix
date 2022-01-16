@@ -1,12 +1,18 @@
 #! /usr/bin/env hy
 
+(require hyrule [-> as-> doto])
+
 (import subprocess
         os
-        click
-        deemix.app.cli
-        youtube-dl)
+        pathlib [Path])
 
-(import [panoramix [utils]])
+(import click
+        deemix.__main__ :as deemix
+        mutagen.id3 [ID3]
+        youtube-dl
+        toolz [first last])
+
+(import panoramix [utils])
 
 ;; entry point command
 
@@ -21,14 +27,16 @@
     Deezer (téléchargée par deemix). Le fichier est ensuite converti au format
     opus avec ffmpeg.
     "
-    (utils.echo-intro "Je sors ma potion télécharger de la musique !")
-    (if 
-      (and (in "deezer.com" url) (in "/track/" url))
-        (-> (unpack-iterable (fetch-with-deemix url))
+    (utils.echo-intro "Je sors ma potion pour télécharger de la musique !")
+    (cond 
+      [(and (in "deezer.com" url) (in "/track/" url))
+        (-> (unpack-mapping (fetch-with-deemix url))
             (convert-deezer-to-opus)
-            (clean-file))
-      (in "youtu" url)
-        (fetch-with-youtube-dl url))))
+            (clean-file))]
+      [(in "youtu" url)
+        (fetch-with-youtube-dl url)])))
+
+
 
 
 ;; YOUTUBE HANDLER
@@ -52,16 +60,10 @@
             home-dir (.getenv os "HOME")
             opus-location f"{home-dir}/backup-songs/{filename}.opus")
       (print "Ajout des métadonnées et copie dans backup-songs...")
-      (subprocess.run ["ffmpeg"
-                       "-y" 
-                       "-i"
-                       yt-location
-                       "-metadata"
-                       f"artist={artist}"
-                       "-metadata"
-                       f"title={title}"
-                       "-metadata"
-                       f"album={album}"
+      (subprocess.run ["ffmpeg" "-y" "-i" yt-location
+                       "-metadata" f"artist={artist}"
+                       "-metadata" f"title={title}"
+                       "-metadata" f"album={album}"
                        "-c:a" 
                        "copy" 
                        opus-location])
@@ -73,21 +75,31 @@
 
 ;; DEEZER HANDLER
 
+(setv DEEMIX-TMP-DIR "/tmp/deemix")
+
+
+(defn extract-metadata [name mutagen-file]
+  (let [metamap {"title" "TIT2"  "artist" "TPE1"}
+        metaname (get metamap name)]
+    (-> mutagen-file (.get metaname) (. text) (first))))
+
+
 (defn fetch-with-deemix [url]
   (print "Téléchargement depuis Deezer...")
-  (setv worker (doto (deemix.app.cli.cli None None)
-                     (.login)
-                     (.downloadLink [url])))
-  (as-> (first (. worker qm queueComplete)) it
-        (get (. worker qm queueList) it))
-        [(first (. it files))
-         (.format "{}-{}" 
-           (format-metadata (. it artist))
-           (format-metadata (. it title)))
-         url])
+  (.system os f"deemix {url} --path {DEEMIX-TMP-DIR}")
+  (as-> (Path DEEMIX-TMP-DIR) it
+        (.glob it "*.mp3")
+        (first it)
+        {"file_location" (.resolve it)
+         "filename" 
+           (let [file (ID3 (.resolve it))]
+             (.format "{}-{}" 
+               (format-metadata (extract-metadata "artist" file))
+               (format-metadata (extract-metadata "title" file))))
+         "url" url}))
 
 (defn convert-deezer-to-opus [file-location filename url]
-  (print "Conversion et copie dans backup-songs...")
+  (print "Conversion et copi^e dans backup-songs...")
   (setv track-number (last (.split url "track/"))
         home-dir (.getenv os "HOME")
         opus-location f"{home-dir}/backup-songs/{filename}.opus"
@@ -114,7 +126,7 @@
       (.replace "]" "")))
 
 (defn clean-file [file-location]
-  (.system os f"rm \"{file-location}\"")
+  (.system os f"rm '{file-location}'")
   (print "Fichier supprimé."
          "Terminé !"
          :sep "\n"))

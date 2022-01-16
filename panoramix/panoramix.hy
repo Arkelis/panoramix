@@ -1,8 +1,10 @@
+(require hyrule [doto])
+
 (import
   click
-  [.dlmusic [dlmusic]]
-  [.update [update]]
-  [.makedocs [makedocs]])
+  .dlmusic [dlmusic]
+  .update [update]
+  .makedocs [makedocs])
 
 (with-decorator
   (click.group)
@@ -13,4 +15,4 @@
   (.add-command update)
   (.add-command makedocs)
   (.add-command dlmusic))
-  
+ 

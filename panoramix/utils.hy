@@ -1,6 +1,6 @@
 (import subprocess
         click
-        [click [exceptions]])
+        click [exceptions])
 
 
 (defn abort [[msg "Fin du programme"]]

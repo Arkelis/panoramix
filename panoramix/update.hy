@@ -2,9 +2,7 @@
 
 (import click)
 
-(import [.utils [echo-intro
-                 echo-and-run
-                 success]])
+(import .utils [echo-intro echo-and-run success])
 
 
 
