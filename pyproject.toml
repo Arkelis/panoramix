@@ -5,12 +5,13 @@ description = ""
 authors = ["Arkelis <guillaume.fayard@pycolore.fr>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.9,<3.11"
 click = "^7.0"
 requests = "^2.22"
 hy = "1.0a4"
 hyrule = "*"
 deemix = "^3.0"
+youtube_dl = "^2021.12.17"
 
 
 [tool.poetry.dev-dependencies]
