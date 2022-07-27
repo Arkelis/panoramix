@@ -3,6 +3,7 @@
 (require hyrule [-> as-> doto])
 
 (import subprocess
+        shutil
         os
         pathlib [Path])
 
@@ -34,10 +35,43 @@
             (convert-deezer-to-opus)
             (clean-file))]
       [(in "youtu" url)
-        (fetch-with-youtube-dl url)])))
+        (fetch-with-youtube-dl url)]
+      [(in "qobuz" url)
+        (fetch-with-qobuz-dl url)])))
 
 
 
+;; QOBUZ HANDLER
+
+(setv QOBUZ-TMP-DIR "/tmp/qobuz")
+
+(defn fetch-with-qobuz-dl [url]
+  (subprocess.run ["qobuz-dl" "dl" "--no-db" url])
+  (convert-qobuz-to-opus url))
+
+(defn get-opus-and-thumbnail [path url]
+  (let 
+    [music-filename (-> (path.glob "*.mp3") (first) (.resolve))
+     music-file (ID3 music-filename)
+     cover-filename (-> (path.glob "*.jpg") (first) (.resolve))
+     track-number (last (.split url "track/"))
+     filename
+      (.format "{}-{}" 
+        (format-metadata (extract-metadata "artist" music-file))
+        (format-metadata (extract-metadata "title" music-file)))
+     home-dir (.getenv os "HOME")
+     opus-location f"{home-dir}/Musique/pycolore/{filename}.opus"
+     cover-location f"{home-dir}/Musique/pycolore/{filename}.jpg"]
+    (shutil.move cover-filename cover-location)
+    (convert-to-opus music-filename opus-location f"q-{track-number}")))
+
+(defn convert-qobuz-to-opus [url]
+  (as-> (Path QOBUZ-TMP-DIR) it
+        (it.glob "*")
+        (filter (fn [x] (x.is-dir)) it)
+        (for [path it]
+          (get-opus-and-thumbnail path url)
+          (shutil.rmtree path))))
 
 ;; YOUTUBE HANDLER
 
@@ -58,7 +92,7 @@
                         (format-metadata artist)
                         (format-metadata title))
             home-dir (.getenv os "HOME")
-            opus-location f"{home-dir}/backup-songs/{filename}.opus")
+            opus-location f"{home-dir}/Musique/pycolore/{filename}.opus")
       (print "Ajout des métadonnées et copie dans backup-songs...")
       (subprocess.run ["ffmpeg" "-y" "-i" yt-location
                        "-metadata" f"artist={artist}"
@@ -99,16 +133,11 @@
          "url" url}))
 
 (defn convert-deezer-to-opus [file-location filename url]
-  (print "Conversion et copi^e dans backup-songs...")
+  (print "Conversion et copie dans backup-songs...")
   (setv track-number (last (.split url "track/"))
         home-dir (.getenv os "HOME")
-        opus-location f"{home-dir}/backup-songs/{filename}.opus"
-        ffmpeg-result (subprocess.run ["ffmpeg" "-y"  "-i" file-location
-                                       "-metadata" f"deezertrack={track-number}"
-                                       "-c:a" "libopus" 
-                                       "-b:a" "152k"
-                                       "-af" "silenceremove=stop_periods=-1:stop_duration=1:stop_threshold=-50dB"
-                                       opus-location]))
+        opus-location f"{home-dir}/Musique/pycolore/{filename}.opus"
+        ffmpeg-result (convert-to-opus file-location opus-location track-number))
   (print f"Fichier converti et copié à {opus-location}."
          "Suppression du fichier précédemment téléchargé..."
          :sep "\n")
@@ -130,3 +159,11 @@
   (print "Fichier supprimé."
          "Terminé !"
          :sep "\n"))
+
+(defn convert-to-opus [input-filename output-filename [track-number None]]
+  (subprocess.run ["ffmpeg" "-y"  "-i" input-filename
+                   #* (if track-number ["-metadata" f"trackid={track-number}"] [])
+                   "-c:a" "libopus" 
+                   "-b:a" "152k"
+                   "-af" "silenceremove=stop_periods=-1:stop_duration=1:stop_threshold=-50dB"
+                   output-filename]))

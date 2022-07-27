@@ -12,6 +12,8 @@ hy = "1.0a4"
 hyrule = "*"
 deemix = "^3.0"
 youtube_dl = "^2021.12.17"
+qobuz-dl = "^0.9.9"
+toolz = "*"
 
 
 [tool.poetry.dev-dependencies]
